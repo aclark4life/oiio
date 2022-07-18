@@ -47,7 +47,7 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
 else
     # Using native Ubuntu runner
 
-    sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     time sudo apt-get update
 
     time sudo apt-get -q install -y \
@@ -62,16 +62,16 @@ else
         locales wget \
         libopencolorio-dev \
         libopencv-dev \
-        libhdf5-dev
-    time sudo apt-get -q install -y \
-        qt5-default || /bin/true
+        qt5-default \
+        libhdf5-dev \
+        libx265-dev
     if [[ "${EXTRA_DEP_PACKAGES}" != "" ]] ; then
         time sudo apt-get -q install -y ${EXTRA_DEP_PACKAGES}
     fi
 
     # Nonstandard python versions
     if [[ "${PYTHON_VERSION}" == "3.9" ]] ; then
-        time sudo apt-get -q install -y python3.9-dev python3-numpy
+        time sudo apt-get -q install -y python3.9-dev python3-numpy python3-pip
         pip3 --version
         pip3 install numpy
     elif [[ "$PYTHON_VERSION" == "2.7" ]] ; then
@@ -80,11 +80,15 @@ else
         pip3 install numpy
     fi
 
-    if [[ "$USE_LIBHEIF" != "0" ]] ; then
-       sudo add-apt-repository ppa:strukturag/libde265
-       sudo add-apt-repository ppa:strukturag/libheif
-       time sudo apt-get -q install -y libheif-dev
-    fi
+    # if [[ "$USE_LIBHEIF" != "0" ]] ; then
+    #     # echo 'deb http://ppa.launchpad.net/strukturag/libde265/ubuntu focal main' > /etc/apt/sources.list.d/strukturag-ubuntu-libde265-focal.list
+    #     # echo 'deb http://ppa.launchpad.net/strukturag/libheif/ubuntu focal main' > /etc/apt/sources.list.d/strukturag-ubuntu-libheif-focal.list
+    #     # apt-key adv --keyserver hkp://keyserver.ubuntu.com --recv-key 9641080A705C2B92
+    #    sudo add-apt-repository ppa:strukturag/libde265 -y
+    #    sudo add-apt-repository ppa:strukturag/libheif -y
+    #     time sudo apt-get update
+    #    time sudo apt-get -q install -y libheif-dev
+    # fi
 
     export CMAKE_PREFIX_PATH=/usr/lib/x86_64-linux-gnu:$CMAKE_PREFIX_PATH
 
@@ -167,6 +171,18 @@ if [[ "$PTEX_VERSION" != "" ]] ; then
     source src/build-scripts/build_Ptex.bash
 fi
 
+if [[ "$LIBAOM_VERSION" != "" ]] ; then
+    source src/build-scripts/build_libaom.bash
+fi
+
+if [[ "$LIBDE265_VERSION" != "" ]] ; then
+    source src/build-scripts/build_libde265.bash
+fi
+
+if [[ "$LIBHEIF_VERSION" != "" ]] ; then
+    source src/build-scripts/build_libheif.bash
+fi
+
 if [[ "$USE_ICC" != "" ]] ; then
     # We used gcc for the prior dependency builds, but use icc for OIIO itself
     echo "which icpc:" $(which icpc)
@@ -175,4 +191,4 @@ if [[ "$USE_ICC" != "" ]] ; then
 fi
 
 # Save the env for use by other stages
-src/build-scripts/save-env.bash
+# src/build-scripts/save-env.bash
