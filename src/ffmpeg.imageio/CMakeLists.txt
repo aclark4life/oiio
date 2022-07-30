@@ -2,11 +2,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # https://github.com/OpenImageIO/oiio
 
-if (FFmpeg_FOUND)
+if (FFmpeg_FOUND OR ffmpeg_FOUND)
     add_oiio_plugin (ffmpeginput.cpp
-                     INCLUDE_DIRS ${FFMPEG_INCLUDES}
+                     INCLUDE_DIRS ${FFMPEG_INCLUDES} ${ffmpeg_INCLUDES}
                      LINK_LIBRARIES ${FFMPEG_LIBRARIES}
                                     ${BZIP2_LIBRARIES}
+                                    ffmpeg::avcodec ffmpeg::avformat ffmpeg::avutil ffmpeg::swscale
                      DEFINITIONS "-DUSE_FFMPEG"
                                  "-DOIIO_FFMPEG_VERSION=\"${FFMPEG_VERSION}\"")
 else()

@@ -180,6 +180,10 @@ checked_find_package (OpenColorIO
                       )
 if (NOT OpenColorIO_FOUND)
     set (OpenColorIO_FOUND 0)
+else ()
+    checked_find_package (yaml-cpp)
+    checked_find_package (pystring)
+    checked_find_package (EXPAT)
 endif ()
 checked_find_package (OpenCV 3.0
                    DEFINITIONS  -DUSE_OPENCV=1)
@@ -191,26 +195,28 @@ checked_find_package (TBB 2017
                       PREFER_CONFIG)
 
 checked_find_package (DCMTK VERSION_MIN 3.6.1)  # For DICOM images
-checked_find_package (FFmpeg VERSION_MIN 3.0)
+checked_find_package (ffmpeg
+                      COMPONENTS avcodec avformat avutil swscale
+                      VERSION_MIN 3.0)
 checked_find_package (GIF
                       VERSION_MIN 4
                       RECOMMEND_MIN 5.0
                       RECOMMEND_MIN_REASON "for stability and thread safety")
 
 # For HEIF/HEIC/AVIF formats
-checked_find_package (Libheif VERSION_MIN 1.3
+checked_find_package (libheif VERSION_MIN 1.3
                       RECOMMEND_MIN 1.7
                       RECOMMEND_MIN_REASON "for AVIF support")
 if (APPLE AND LIBHEIF_VERSION VERSION_GREATER_EQUAL 1.10 AND LIBHEIF_VERSION VERSION_LESS 1.11)
     message (WARNING "Libheif 1.10 on Apple is known to be broken, disabling libheif support")
-    set (Libheif_FOUND 0)
+    set (libheif_FOUND 0)
 endif ()
 
-checked_find_package (LibRaw
+checked_find_package (libraw
                       RECOMMEND_MIN 0.18
                       RECOMMEND_MIN_REASON "for ACES support and better camera metadata"
                       PRINT LibRaw_r_LIBRARIES)
-if (LibRaw_FOUND AND LibRaw_VERSION VERSION_LESS 0.20 AND CMAKE_CXX_STANDARD VERSION_GREATER_EQUAL 17)
+if (libraw_FOUND AND libraw_VERSION VERSION_LESS 0.20 AND CMAKE_CXX_STANDARD VERSION_GREATER_EQUAL 17)
     message (STATUS "${ColorYellow}WARNING When building for C++17, LibRaw should be 0.20 or higher (found ${LibRaw_VERSION}). You may get errors, depending on the compiler.${ColorReset}")
     # Currently, we issue the above warning and let them take their chances.
     # If we wish to disable the LibRaw<0.20/C++17 combination that may fail,
@@ -230,12 +236,12 @@ checked_find_package (OpenVDB
                       DEPS         TBB
                       DEFINITIONS  -DUSE_OPENVDB=1)
 
-checked_find_package (Ptex PREFER_CONFIG)
-if (NOT Ptex_FOUND OR NOT Ptex_VERSION)
+checked_find_package (ptex PREFER_CONFIG)
+if (NOT ptex_FOUND OR NOT ptex_VERSION)
     # Fallback for inadequate Ptex exported configs. This will eventually
     # disappear when we can 100% trust Ptex's exports.
-    unset (Ptex_FOUND)
-    checked_find_package (Ptex)
+    unset (ptex_FOUND)
+    checked_find_package (ptex)
 endif ()
 
 checked_find_package (WebP)

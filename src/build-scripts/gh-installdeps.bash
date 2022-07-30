@@ -51,20 +51,9 @@ else
     time sudo apt-get update
 
     time sudo apt-get -q install -y \
-        git cmake ninja-build ccache g++ \
-        libboost-dev libboost-thread-dev libboost-filesystem-dev \
-        libilmbase-dev libopenexr-dev \
-        libtbb-dev \
-        libtiff-dev libgif-dev libpng-dev libraw-dev libwebp-dev \
-        libavcodec-dev libavformat-dev libswscale-dev libavutil-dev \
-        dcmtk libopenvdb-dev \
-        libfreetype6-dev \
-        locales wget \
-        libopencolorio-dev \
-        libopencv-dev \
-        qt5-default \
-        libhdf5-dev \
-        libx265-dev
+        git cmake ninja-build ccache \
+        libdeflate-dev libzstd-dev \
+        locales wget
     if [[ "${EXTRA_DEP_PACKAGES}" != "" ]] ; then
         time sudo apt-get -q install -y ${EXTRA_DEP_PACKAGES}
     fi

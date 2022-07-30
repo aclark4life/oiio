@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # https://github.com/OpenImageIO/oiio
 
-if (Ptex_FOUND)
+if (Ptex_FOUND OR ptex_FOUND)
     add_oiio_plugin (ptexinput.cpp
-                     LINK_LIBRARIES Ptex::Ptex_dynamic ZLIB::ZLIB
+                     LINK_LIBRARIES Ptex::Ptex ZLIB::ZLIB
                      DEFINITIONS "-DUSE_PTEX")
 endif ()

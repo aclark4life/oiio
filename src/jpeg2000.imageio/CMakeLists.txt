@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # https://github.com/OpenImageIO/oiio
 
-if (OPENJPEG_FOUND)
+if (OPENJPEG_FOUND OR OpenJPEG_FOUND)
     add_oiio_plugin (jpeg2000input.cpp jpeg2000output.cpp
-                     INCLUDE_DIRS ${OPENJPEG_INCLUDES}
-                     LINK_LIBRARIES ${OPENJPEG_LIBRARIES}
+                     INCLUDE_DIRS ${OPENJPEG_INCLUDES} ${OpenJPEG_INCLUDES}
+                     LINK_LIBRARIES ${OPENJPEG_LIBRARIES} ${OpenJPEG_LIBRARIES}
                      DEFINITIONS "-DUSE_OPENJPEG")
 else()
     message (WARNING "Jpeg-2000 plugin will not be built")
