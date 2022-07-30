@@ -160,18 +160,6 @@ if [[ "$PTEX_VERSION" != "" ]] ; then
     source src/build-scripts/build_Ptex.bash
 fi
 
-if [[ "$LIBAOM_VERSION" != "" ]] ; then
-    source src/build-scripts/build_libaom.bash
-fi
-
-if [[ "$LIBDE265_VERSION" != "" ]] ; then
-    source src/build-scripts/build_libde265.bash
-fi
-
-if [[ "$LIBHEIF_VERSION" != "" ]] ; then
-    source src/build-scripts/build_libheif.bash
-fi
-
 if [[ "$USE_ICC" != "" ]] ; then
     # We used gcc for the prior dependency builds, but use icc for OIIO itself
     echo "which icpc:" $(which icpc)
