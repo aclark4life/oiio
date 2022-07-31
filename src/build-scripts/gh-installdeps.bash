@@ -47,20 +47,31 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
 elif [[ "$USE_CONAN" != "1" ]] ; then
     # Using native Ubuntu runner
 
-    sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test
     time sudo apt-get update
 
     time sudo apt-get -q install -y \
-        git cmake ninja-build ccache \
-        libdeflate-dev libzstd-dev \
-        locales wget
+        git cmake ninja-build ccache g++ \
+        libboost-dev libboost-thread-dev libboost-filesystem-dev \
+        libilmbase-dev libopenexr-dev \
+        libtbb-dev \
+        libtiff-dev libgif-dev libpng-dev libraw-dev libwebp-dev \
+        libavcodec-dev libavformat-dev libswscale-dev libavutil-dev \
+        dcmtk libopenvdb-dev \
+        libfreetype6-dev \
+        locales wget \
+        libopencolorio-dev \
+        libopencv-dev \
+        libhdf5-dev
+    time sudo apt-get -q install -y \
+        qt5-default || /bin/true
     if [[ "${EXTRA_DEP_PACKAGES}" != "" ]] ; then
         time sudo apt-get -q install -y ${EXTRA_DEP_PACKAGES}
     fi
 
     # Nonstandard python versions
     if [[ "${PYTHON_VERSION}" == "3.9" ]] ; then
-        time sudo apt-get -q install -y python3.9-dev python3-numpy python3-pip
+        time sudo apt-get -q install -y python3.9-dev python3-numpy
         pip3 --version
         pip3 install numpy
     elif [[ "$PYTHON_VERSION" == "2.7" ]] ; then
@@ -70,9 +81,8 @@ elif [[ "$USE_CONAN" != "1" ]] ; then
     fi
 
     if [[ "$USE_LIBHEIF" != "0" ]] ; then
-       sudo add-apt-repository ppa:strukturag/libde265 -y
-       sudo add-apt-repository ppa:strukturag/libheif -y
-       time sudo apt-get update
+       sudo add-apt-repository ppa:strukturag/libde265
+       sudo add-apt-repository ppa:strukturag/libheif
        time sudo apt-get -q install -y libheif-dev
     fi
 

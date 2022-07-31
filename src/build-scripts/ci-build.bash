@@ -18,7 +18,6 @@ if [[ ${GITHUB_ACTIONS} == true ]] ; then
 fi
 
 pushd build
-
 cmake .. -G "$CMAKE_GENERATOR" \
         -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" \
         -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
