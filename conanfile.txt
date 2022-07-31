@@ -39,4 +39,5 @@ cmake_find_package
 *:fPIC=True
 ffmpeg:with_vulkan=False
 ffmpeg:with_asm=False
+ffmpeg:with_pulse=False
 libx265:assembly=False

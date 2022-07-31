@@ -44,7 +44,7 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
         set +e; source /opt/intel/oneapi/setvars.sh; set -e
     fi
 
-else
+elif [[ "$USE_CONAN" != "1" ]] ; then
     # Using native Ubuntu runner
 
     sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
@@ -69,15 +69,12 @@ else
         pip3 install numpy
     fi
 
-    # if [[ "$USE_LIBHEIF" != "0" ]] ; then
-    #     # echo 'deb http://ppa.launchpad.net/strukturag/libde265/ubuntu focal main' > /etc/apt/sources.list.d/strukturag-ubuntu-libde265-focal.list
-    #     # echo 'deb http://ppa.launchpad.net/strukturag/libheif/ubuntu focal main' > /etc/apt/sources.list.d/strukturag-ubuntu-libheif-focal.list
-    #     # apt-key adv --keyserver hkp://keyserver.ubuntu.com --recv-key 9641080A705C2B92
-    #    sudo add-apt-repository ppa:strukturag/libde265 -y
-    #    sudo add-apt-repository ppa:strukturag/libheif -y
-    #     time sudo apt-get update
-    #    time sudo apt-get -q install -y libheif-dev
-    # fi
+    if [[ "$USE_LIBHEIF" != "0" ]] ; then
+       sudo add-apt-repository ppa:strukturag/libde265 -y
+       sudo add-apt-repository ppa:strukturag/libheif -y
+       time sudo apt-get update
+       time sudo apt-get -q install -y libheif-dev
+    fi
 
     export CMAKE_PREFIX_PATH=/usr/lib/x86_64-linux-gnu:$CMAKE_PREFIX_PATH
 

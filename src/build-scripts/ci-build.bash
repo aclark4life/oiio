@@ -19,19 +19,6 @@ fi
 
 pushd build
 
-if [[ $(conan profile list | grep default) == '' ]]; then
-    conan profile new default --detect
-fi
-conan profile update settings.compiler=gcc default
-conan profile update settings.compiler.version=8 default
-conan profile update settings.compiler.libcxx=libstdc++11 default
-echo -e '[conf]\ntools.system.package_manager:mode=install' >> ~/.conan/profiles/default
-if [[ "$USE_FFMPEG" == '1' ]]; then
-    CONAN_SYSREQUIRES_SUDO=0 CONAN_SYSREQUIRES_MODE=enabled conan install .. --build=openjpeg --build=libx264 --build=ffmpeg --build=libx265
-else
-    CONAN_SYSREQUIRES_SUDO=0 CONAN_SYSREQUIRES_MODE=enabled conan install ..
-fi
-
 cmake .. -G "$CMAKE_GENERATOR" \
         -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" \
         -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
