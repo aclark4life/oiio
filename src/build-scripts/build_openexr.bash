@@ -19,6 +19,10 @@ OPENEXR_CMAKE_FLAGS=${OPENEXR_CMAKE_FLAGS:=""}
 OPENEXR_CXX_FLAGS=${OPENEXR_CXX_FLAGS:=""}
 BASEDIR=$PWD
 
+if [[ "$OSTYPE" == "msys" ]]; then
+    OPENEXR_CXX_FLAGS="${OPENEXR_CXX_FLAGS} /W1 /EHsc /DWIN32=1 /MT"
+fi
+
 pwd
 echo "Building OpenEXR ${OPENEXR_VERSION}"
 echo "OpenEXR build dir will be: ${OPENEXR_BUILD_DIR}"
@@ -65,6 +69,10 @@ else
             -DOPENEXR_INSTALL_EXAMPLES=0 \
             -DCMAKE_INSTALL_LIBDIR=lib \
             -DCMAKE_CXX_FLAGS="${OPENEXR_CXX_FLAGS}" \
+            -DCMAKE_CXX_FLAGS_RELEASE="${OPENEXR_CXX_FLAGS}" \
+            -DCMAKE_C_FLAGS="${OPENEXR_CXX_FLAGS}" \
+            -DCMAKE_C_FLAGS_RELEASE="${OPENEXR_CXX_FLAGS}" \
+            -DCMAKE_MODULE_PATH=${CONAN_CMAKE_FILES} \
             ${OPENEXR_CMAKE_FLAGS} ${OPENEXR_SOURCE_DIR}
     time cmake --build . --target install --config ${OPENEXR_BUILD_TYPE}
 fi

@@ -187,7 +187,7 @@ endif ()
 
 if (MSVC)
     # Microsoft specific options
-    add_compile_options (/W1)
+    add_compile_options (/W1 /EHsc /MT)
     add_definitions (-D_CRT_SECURE_NO_DEPRECATE)
     add_definitions (-D_CRT_SECURE_NO_WARNINGS)
     add_definitions (-D_CRT_NONSTDC_NO_WARNINGS)

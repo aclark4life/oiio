@@ -14,8 +14,12 @@ LOCAL_DEPS_DIR=${LOCAL_DEPS_DIR:=${PWD}/ext}
 OPENCOLORIO_SOURCE_DIR=${OPENCOLORIO_SOURCE_DIR:=${LOCAL_DEPS_DIR}/OpenColorIO}
 OPENCOLORIO_BUILD_DIR=${OPENCOLORIO_BUILD_DIR:=${LOCAL_DEPS_DIR}/OpenColorIO-build}
 OPENCOLORIO_INSTALL_DIR=${OPENCOLORIO_INSTALL_DIR:=${LOCAL_DEPS_DIR}/dist}
-OPENCOLORIO_CXX_FLAGS=${OPENCOLORIO_CXX_FLAGS:="-Wno-unused-function -Wno-deprecated-declarations -Wno-cast-qual -Wno-write-strings"}
+if [[ "$OSTYPE" != "msys" ]]; then
+    OPENCOLORIO_CXX_FLAGS=${OPENCOLORIO_CXX_FLAGS:="-Wno-unused-function -Wno-deprecated-declarations -Wno-cast-qual -Wno-write-strings"}
+fi
 # Just need libs:
+#                        -DEXPAT_CMAKE_ARGS=-DEXPAT_MSVC_STATIC_CRT=ON \
+#                       -Dyaml-cpp_CMAKE_ARGS=-DYAML_MSVC_SHARED_RT=OFF \
 OPENCOLORIO_BUILDOPTS="-DOCIO_BUILD_APPS=OFF -DOCIO_BUILD_NUKE=OFF \
                        -DOCIO_BUILD_DOCS=OFF -DOCIO_BUILD_TESTS=OFF \
                        -DOCIO_BUILD_GPU_TESTS=OFF \
@@ -43,7 +47,8 @@ mkdir -p ${OPENCOLORIO_BUILD_DIR}
 cd ${OPENCOLORIO_BUILD_DIR}
 time cmake -DCMAKE_BUILD_TYPE=Release \
            -DCMAKE_INSTALL_PREFIX=${OPENCOLORIO_INSTALL_DIR} \
-           -DCMAKE_CXX_FLAGS="${OPENCOLORIO_CXX_FLAGS}" \
+           -DCMAKE_CXX_FLAGS_RELEASE=//MT \
+           -Dyaml-cpp_CXX_FLAGS=//MT \
            ${OPENCOLORIO_BUILDOPTS} ${OPENCOLORIO_SOURCE_DIR}
 time cmake --build . --config Release --target install
 popd

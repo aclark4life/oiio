@@ -46,6 +46,7 @@ if [[ -z $DEP_DOWNLOAD_ONLY ]]; then
                -DCMAKE_INSTALL_PREFIX=${PUGIXML_INSTALL_DIR} \
                -DBUILD_SHARED_LIBS=ON \
                -DBUILD_TESTS=OFF \
+               -DCMAKE_CXX_FLAGS_RELEASE=//MT \
                ${PUGIXML_BUILD_OPTS} ..
     time cmake --build . --config Release --target install
 fi

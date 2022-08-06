@@ -1,28 +1,34 @@
 # docker run -ti --rm -v $(pwd):/jc quay.io/pypa/manylinux2014_x86_64:latest bash
 set -ex
-yum install ninja-build wget less ccache -y
-python3.10 -m pip install conan numpy --user
 
-if [[ ! -d /opt/cmake ]]; then
-    currentPath=$(pwd)
-    wget https://github.com/Kitware/CMake/releases/download/v3.23.2/cmake-3.23.2-linux-x86_64.tar.gz
-    mkdir -p /opt/cmake
-    cd /opt
-    tar -xzf "${currentPath}/cmake-3.23.2-linux-x86_64.tar.gz"
-    rm "${currentPath}/cmake-3.23.2-linux-x86_64.tar.gz"
-    mv cmake-3.23.2-linux-x86_64/* cmake/
-    rm -rf cmake-3.23.2-linux-x86_64/
-    cd "${currentPath}"
+if [[ "$OSTYPE" != "msys" ]]; then
+    yum install ninja-build wget less ccache -y
 fi
 
-cp $(which ccache) /usr/local/bin/ || true
-ln -sf $(which ccache) /usr/local/bin/gcc
-ln -sf $(which ccache) /usr/local/bin/g++
-ln -sf $(which ccache) /usr/local/bin/cc
-ln -sf $(which ccache) /usr/local/bin/c++
-ccache --max-files 0 --max-size 0
+python -m pip install conan numpy --user
 
-export PATH=/opt/cmake/bin:/usr/local/bin:~/.local/bin:$PATH
+if [[ "$OSTYPE" != "msys" ]]; then
+    if [[ ! -d /opt/cmake ]]; then
+        currentPath=$(pwd)
+        wget https://github.com/Kitware/CMake/releases/download/v3.23.2/cmake-3.23.2-linux-x86_64.tar.gz
+        mkdir -p /opt/cmake
+        cd /opt
+        tar -xzf "${currentPath}/cmake-3.23.2-linux-x86_64.tar.gz"
+        rm "${currentPath}/cmake-3.23.2-linux-x86_64.tar.gz"
+        mv cmake-3.23.2-linux-x86_64/* cmake/
+        rm -rf cmake-3.23.2-linux-x86_64/
+        cd "${currentPath}"
+    fi
+
+    cp $(which ccache) /usr/local/bin/ || true
+    ln -sf $(which ccache) /usr/local/bin/gcc
+    ln -sf $(which ccache) /usr/local/bin/g++
+    ln -sf $(which ccache) /usr/local/bin/cc
+    ln -sf $(which ccache) /usr/local/bin/c++
+    ccache --max-files 0 --max-size 0
+fi
+
+export PATH=/opt/cmake/bin:/usr/local/bin:~/.local/bin:~/AppData/Roaming/Python/Python310/Scripts:$PATH
 
 export CMAKE_CXX_STANDARD=17
 
@@ -35,7 +41,7 @@ export USE_JPEGTURBO=0
 
 export USE_FFMPEG=1
 export USE_PNG=1
-export USE_OPENCV=1 # Always disable
+export USE_OPENCV=0 # Always disable
 export USE_GIF=1
 export USE_PTEX=1
 export USE_WEBP=1
@@ -58,7 +64,9 @@ export OPENCOLORIO_BUILD_SHARED_LIBS=OFF
 export OPENEXR_CMAKE_FLAGS=-DBUILD_SHARED_LIBS=OFF
 export PUGIXML_BUILD_OPTS=-DBUILD_SHARED_LIBS=OFF
 
-export MY_CMAKE_FLAGS="${MY_CMAKE_FLAGS} -DBUILD_SHARED_LIBS=OFF -DLINKSTATIC=ON -DOIIO_BUILD_TESTS=OFF -DOPENCOLORIO_NO_CONFIG=ON -DOIIO_BUILD_TOOLS=ON -DPython_ROOT=/opt/_internal/cpython-3.10.5"
+export OPENCOLORIO_CXX_FLAGS='/MT'
+
+export MY_CMAKE_FLAGS="${MY_CMAKE_FLAGS} -DBUILD_SHARED_LIBS=OFF -DLINKSTATIC=ON -DOIIO_BUILD_TESTS=OFF -DOPENCOLORIO_NO_CONFIG=ON -DOIIO_BUILD_TOOLS=ON"
 export PYTHON_VERSION=3.10
 
 export OPENIMAGEIO_OPTIONS="openexr:core=1"
@@ -69,26 +77,42 @@ export CMAKE_BUILD_PARALLEL_LEVEL=16
 
 unset TERM
 
-source src/build-scripts/gh-installdeps.bash
-
 mkdir -p build
 
 pushd build
 if [[ $(conan profile list | grep default) == '' ]]; then
     conan profile new default --detect
 fi
-conan profile update settings.compiler=gcc default
-conan profile update settings.compiler.version=10 default
-conan profile update settings.compiler.libcxx=libstdc++ default
+
+if [[ "$OSTYPE" == "msys" ]]; then
+    conan profile update settings.compiler='Visual Studio' default
+    conan profile update settings.compiler.runtime=MT default
+    conan profile update settings.compiler.version=16 default
+    conan profile update settings.arch=x86_64 default
+
+    # export USE_NINJA=0
+    # export CMAKE_GENERATOR='Visual Studio 16 2019'
+
+    export CONAN_CMAKE_FILES=$(pwd)
+    #export OPENEXR_CXX_FLAGS=' /MT '
+    #export OPENCOLORIO_CXX_FLAGS=' /MT '
+fi
+
 if [[ "$USE_FFMPEG" == '1' ]]; then
     cp ../conanfile.txt .
+    if [[ "$OSTYPE" == "msys" ]]; then
+        cat ../conanfile.txt | grep -v with_vulkan | grep -v with_pulse > conanfile.txt
+    fi
+
     # Rebuilding expat to fix "undefined reference to `getrandom'" errors.
-    CONAN_SYSREQUIRES_SUDO=0 CONAN_SYSREQUIRES_MODE=enabled conan install . --build=openjpeg --build=libx264 --build=ffmpeg --build=libx265 --build expat -c tools.system.package_manager:mode=install -c tools.system.package_manager:tool=yum
+    CONAN_SYSREQUIRES_SUDO=0 CONAN_SYSREQUIRES_MODE=enabled conan install . #--build=openjpeg --build=libx264 --build=ffmpeg --build=libx265 --build expat -c tools.system.package_manager:mode=install -c tools.system.package_manager:tool=yum
 else
     cat ../conanfile.txt | grep -v 'ffmpeg/' > conanfile.txt
     CONAN_SYSREQUIRES_SUDO=0 CONAN_SYSREQUIRES_MODE=enabled conan install .
 fi
 
 popd
+
+source src/build-scripts/gh-installdeps.bash
 
 source src/build-scripts/ci-build.bash
