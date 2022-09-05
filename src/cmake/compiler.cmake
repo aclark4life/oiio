@@ -187,7 +187,7 @@ endif ()
 
 if (MSVC)
     # Microsoft specific options
-    add_compile_options (/W1 /EHsc /MT)
+    add_compile_options (/W1 /EHsc)
     add_definitions (-D_CRT_SECURE_NO_DEPRECATE)
     add_definitions (-D_CRT_SECURE_NO_WARNINGS)
     add_definitions (-D_CRT_NONSTDC_NO_WARNINGS)
@@ -589,6 +589,10 @@ if (LINKSTATIC)
         set (CMAKE_FIND_LIBRARY_SUFFIXES .lib .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
     else ()
         set (CMAKE_FIND_LIBRARY_SUFFIXES .a)
+    endif ()
+
+    if (MSVC)
+        add_compile_options (/MT)
     endif ()
 endif ()
 

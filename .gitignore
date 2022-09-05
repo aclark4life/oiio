@@ -19,3 +19,5 @@ ext/
 /*.jpg
 /*.tx
 /*.log
+*.egg-info/
+*.whl

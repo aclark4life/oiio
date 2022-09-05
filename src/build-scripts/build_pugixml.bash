@@ -21,6 +21,12 @@ PUGIXML_BUILD_DIR=${PUGIXML_BUILD_DIR:=${PUGIXML_SRC_DIR}/build}
 LOCAL_DEPS_DIR=${LOCAL_DEPS_DIR:=${PWD}/ext}
 PUGIXML_INSTALL_DIR=${PUGIXML_INSTALL_DIR:=${LOCAL_DEPS_DIR}/dist}
 #PUGIXML_BUILD_OPTS=${PUGIXML_BUILD_OPTS:=}
+PUGIXML_BUILD_SHARED_LIBS=${PUGIXML_BUILD_SHARED_LIBS:="ON"}
+
+PUGIXML_CXX_FLAGS=${PUGIXML_CXX_FLAGS:=}
+if [[ "$OSTYPE" == 'msys' ]] && [[ "${PUGIXML_BUILD_SHARED_LIBS}" != "ON" ]]; then
+    PUGIXML_CXX_FLAGS="${PUGIXML_CXX_FLAGS} //MT"
+fi
 
 pwd
 echo "pugixml install dir will be: ${PUGIXML_INSTALL_DIR}"
@@ -44,9 +50,9 @@ cd ${PUGIXML_BUILD_DIR}
 if [[ -z $DEP_DOWNLOAD_ONLY ]]; then
     time cmake -DCMAKE_BUILD_TYPE=Release \
                -DCMAKE_INSTALL_PREFIX=${PUGIXML_INSTALL_DIR} \
-               -DBUILD_SHARED_LIBS=ON \
+               -DBUILD_SHARED_LIBS=${PUGIXML_BUILD_SHARED_LIBS} \
                -DBUILD_TESTS=OFF \
-               -DCMAKE_CXX_FLAGS_RELEASE=//MT \
+               -DCMAKE_CXX_FLAGS_RELEASE=${PUGIXML_CXX_FLAGS} \
                ${PUGIXML_BUILD_OPTS} ..
     time cmake --build . --config Release --target install
 fi

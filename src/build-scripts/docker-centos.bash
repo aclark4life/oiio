@@ -28,7 +28,10 @@ if [[ "$OSTYPE" != "msys" ]]; then
     ccache --max-files 0 --max-size 0
 fi
 
-export PATH=/opt/cmake/bin:/usr/local/bin:~/.local/bin:~/AppData/Roaming/Python/Python310/Scripts:$PATH
+export PATH=/opt/cmake/bin:/usr/local/bin:~/.local/bin:$PATH
+if [[ "$OSTYPE" == 'msys' ]]; then
+    export PATH=$PATH:~/AppData/Roaming/Python/Python310/Scripts
+fi
 
 export CMAKE_CXX_STANDARD=17
 
@@ -61,10 +64,8 @@ export OPENEXR_VERSION=v3.1.5
 export PYBIND11_VERSION=v2.9.2
 
 export OPENCOLORIO_BUILD_SHARED_LIBS=OFF
-export OPENEXR_CMAKE_FLAGS=-DBUILD_SHARED_LIBS=OFF
-export PUGIXML_BUILD_OPTS=-DBUILD_SHARED_LIBS=OFF
-
-export OPENCOLORIO_CXX_FLAGS='/MT'
+export PUGIXML_BUILD_SHARED_LIBS=OFF
+export OPENEXR_BUILD_SHARED_LIBS=OFF
 
 export MY_CMAKE_FLAGS="${MY_CMAKE_FLAGS} -DBUILD_SHARED_LIBS=OFF -DLINKSTATIC=ON -DOIIO_BUILD_TESTS=OFF -DOPENCOLORIO_NO_CONFIG=ON -DOIIO_BUILD_TOOLS=ON"
 export PYTHON_VERSION=3.10
@@ -84,35 +85,39 @@ if [[ $(conan profile list | grep default) == '' ]]; then
     conan profile new default --detect
 fi
 
-if [[ "$OSTYPE" == "msys" ]]; then
+if [[ "$OSTYPE" == linux-* ]]; then
+    conan profile update settings.compiler=gcc default
+    conan profile update settings.compiler.version=10 default
+    conan profile update settings.compiler.libcxx=libstdc++ default
+elif [[ "$OSTYPE" == "msys" ]]; then
     conan profile update settings.compiler='Visual Studio' default
     conan profile update settings.compiler.runtime=MT default
     conan profile update settings.compiler.version=16 default
     conan profile update settings.arch=x86_64 default
 
-    # export USE_NINJA=0
-    # export CMAKE_GENERATOR='Visual Studio 16 2019'
-
     export CONAN_CMAKE_FILES=$(pwd)
-    #export OPENEXR_CXX_FLAGS=' /MT '
-    #export OPENCOLORIO_CXX_FLAGS=' /MT '
 fi
+
+conanArgs=''
 
 if [[ "$USE_FFMPEG" == '1' ]]; then
     cp ../conanfile.txt .
+    conanArgs='--build=openjpeg --build=libx264 --build=ffmpeg --build=libx265 --build expat -c tools.system.package_manager:mode=install -c tools.system.package_manager:tool=yum'
     if [[ "$OSTYPE" == "msys" ]]; then
         cat ../conanfile.txt | grep -v with_vulkan | grep -v with_pulse > conanfile.txt
+        conanArgs=''
     fi
 
-    # Rebuilding expat to fix "undefined reference to `getrandom'" errors.
-    CONAN_SYSREQUIRES_SUDO=0 CONAN_SYSREQUIRES_MODE=enabled conan install . #--build=openjpeg --build=libx264 --build=ffmpeg --build=libx265 --build expat -c tools.system.package_manager:mode=install -c tools.system.package_manager:tool=yum
 else
     cat ../conanfile.txt | grep -v 'ffmpeg/' > conanfile.txt
-    CONAN_SYSREQUIRES_SUDO=0 CONAN_SYSREQUIRES_MODE=enabled conan install .
 fi
+
+PATH=/opt/python/cp310-cp310/bin:$PATH CONAN_SYSREQUIRES_SUDO=0 CONAN_SYSREQUIRES_MODE=enabled conan install . --build #$conanArgs
 
 popd
 
 source src/build-scripts/gh-installdeps.bash
 
-source src/build-scripts/ci-build.bash
+# source src/build-scripts/ci-build.bash
+
+/opt/python/cp310-cp310/bin/python setup.py bdist_wheel
