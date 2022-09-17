@@ -1,13 +1,18 @@
 # docker run -ti --rm -v $(pwd):/jc quay.io/pypa/manylinux2014_x86_64:latest bash
 set -ex
 
-if [[ "$OSTYPE" != "msys" ]]; then
+if [[ "$OSTYPE" == linux-* ]]; then
     yum install ninja-build wget less ccache -y
+elif [[ "$OSTYPE" == darwin* ]]; then
+    brew install wget ccache cmake pkg-config ninja
+
+    export PATH=/usr/local/opt/ccache/libexec:$PATH
+    export PATH=~/Library/Python/$(python3 --version | grep -o '[[:digit:]].[[:digit:]][[:digit:]]')/bin:$PATH
 fi
 
-python -m pip install conan numpy --user
+python3.10 -m pip install conan numpy --user
 
-if [[ "$OSTYPE" != "msys" ]]; then
+if [[ "$OSTYPE" == linux-* ]]; then
     if [[ ! -d /opt/cmake ]]; then
         currentPath=$(pwd)
         wget https://github.com/Kitware/CMake/releases/download/v3.23.2/cmake-3.23.2-linux-x86_64.tar.gz
@@ -67,8 +72,10 @@ export OPENCOLORIO_BUILD_SHARED_LIBS=OFF
 export PUGIXML_BUILD_SHARED_LIBS=OFF
 export OPENEXR_BUILD_SHARED_LIBS=OFF
 
-export MY_CMAKE_FLAGS="${MY_CMAKE_FLAGS} -DBUILD_SHARED_LIBS=OFF -DLINKSTATIC=ON -DOIIO_BUILD_TESTS=OFF -DOPENCOLORIO_NO_CONFIG=ON -DOIIO_BUILD_TOOLS=ON"
+export MY_CMAKE_FLAGS="${MY_CMAKE_FLAGS} -DBUILD_SHARED_LIBS=OFF -DLINKSTATIC=ON -DOIIO_BUILD_TESTS=OFF -DOIIO_BUILD_TOOLS=ON"
 export PYTHON_VERSION=3.10
+
+export MACOSX_DEPLOYMENT_TARGET=10.13
 
 export OPENIMAGEIO_OPTIONS="openexr:core=1"
 
@@ -89,6 +96,11 @@ if [[ "$OSTYPE" == linux-* ]]; then
     conan profile update settings.compiler=gcc default
     conan profile update settings.compiler.version=10 default
     conan profile update settings.compiler.libcxx=libstdc++ default
+elif [[ "$OSTYPE" == darwin* ]]; then
+    conan profile update settings.os.version=10.13 default  # Deployment target
+    conan profile update settings.compiler=apple-clang default
+    conan profile update settings.compiler.version=13.1 default
+    conan profile update settings.compiler.libcxx=libc++ default
 elif [[ "$OSTYPE" == "msys" ]]; then
     conan profile update settings.compiler='Visual Studio' default
     conan profile update settings.compiler.runtime=MT default
@@ -102,12 +114,20 @@ conanArgs=''
 
 if [[ "$USE_FFMPEG" == '1' ]]; then
     cp ../conanfile.txt .
-    conanArgs='--build=openjpeg --build=libx264 --build=ffmpeg --build=libx265 --build expat -c tools.system.package_manager:mode=install -c tools.system.package_manager:tool=yum'
+    conanArgs='--build=openjpeg --build=libx264 --build=ffmpeg --build=libx265 --build expat --build boost -c tools.system.package_manager:mode=install -c tools.system.package_manager:tool=yum'
     if [[ "$OSTYPE" == "msys" ]]; then
         cat ../conanfile.txt | grep -v with_vulkan | grep -v with_pulse > conanfile.txt
+    fi
+
+    if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == darwin* ]]; then
+        cat ../conanfile.txt | grep -v '.*\:\(with_vulkan\|with_pulse\|with_stacktrace_backtrace\|with_vaapi\|with_vdpau\|with_xcb\)\=.*' > conanfile.txt
+        sed -i '.bak' 's/boost\:.*//g' conanfile.txt
         conanArgs=''
     fi
 
+    if [[ "$OSTYPE" == darwin* ]]; then
+        conanArgs='--build'
+    fi
 else
     cat ../conanfile.txt | grep -v 'ffmpeg/' > conanfile.txt
 fi
@@ -120,4 +140,4 @@ source src/build-scripts/gh-installdeps.bash
 
 # source src/build-scripts/ci-build.bash
 
-/opt/python/cp310-cp310/bin/python setup.py bdist_wheel
+python3.10 -m pip wheel -v .

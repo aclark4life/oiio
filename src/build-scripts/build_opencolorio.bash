@@ -52,6 +52,10 @@ cd ${OPENCOLORIO_SOURCE_DIR}
 
 echo "git checkout ${OPENCOLORIO_VERSION} --force"
 git checkout ${OPENCOLORIO_VERSION} --force
+
+# Apply https://github.com/AcademySoftwareFoundation/OpenColorIO/pull/1599
+git apply "${BASEDIR}/ocio.patch"
+
 mkdir -p ${OPENCOLORIO_BUILD_DIR}
 cd ${OPENCOLORIO_BUILD_DIR}
 time cmake -DCMAKE_BUILD_TYPE=Release \

@@ -184,6 +184,7 @@ else ()
     checked_find_package (yaml-cpp)
     checked_find_package (pystring)
     checked_find_package (EXPAT)
+    add_library(expat::expat ALIAS EXPAT::EXPAT)
 endif ()
 checked_find_package (OpenCV 3.0
                    DEFINITIONS  -DUSE_OPENCV=1)

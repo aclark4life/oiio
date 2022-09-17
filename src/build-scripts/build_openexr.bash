@@ -78,7 +78,6 @@ else
             -DCMAKE_CXX_FLAGS_RELEASE="${OPENEXR_CXX_FLAGS}" \
             -DCMAKE_C_FLAGS="${OPENEXR_CXX_FLAGS}" \
             -DCMAKE_C_FLAGS_RELEASE="${OPENEXR_CXX_FLAGS}" \
-            -DCMAKE_MODULE_PATH=${CONAN_CMAKE_FILES} \
             ${OPENEXR_CMAKE_FLAGS} ${OPENEXR_SOURCE_DIR}
     time cmake --build . --target install --config ${OPENEXR_BUILD_TYPE}
 fi
