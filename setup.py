@@ -142,12 +142,12 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'oiiotool = OpenImageIO._commands:oiiotool',
-            'iinfo = OpenImageIO_commands:iinfo',
-            'testtex = OpenImageIO_commands:testtex',
-            'maketx = OpenImageIO_commands:maketx',
-            'idiff = OpenImageIO_commands:idiff',
-            'igrep = OpenImageIO_commands:igrep',
-            'iconvert = OpenImageIO_commands:iconvert',
+            'iinfo = OpenImageIO._commands:iinfo',
+            'testtex = OpenImageIO._commands:testtex',
+            'maketx = OpenImageIO._commands:maketx',
+            'idiff = OpenImageIO._commands:idiff',
+            'igrep = OpenImageIO._commands:igrep',
+            'iconvert = OpenImageIO._commands:iconvert',
         ]
     },
 

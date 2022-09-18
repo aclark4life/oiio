@@ -1,18 +1,12 @@
 # docker run -ti --rm -v $(pwd):/jc quay.io/pypa/manylinux2014_x86_64:latest bash
 set -ex
 
+_PYTHON_VERSION=$(python3 --version | grep -o '[[:digit:]].[[:digit:]][[:digit:]]')
+
 if [[ "$OSTYPE" == linux-* ]]; then
     yum install ninja-build wget less ccache -y
-elif [[ "$OSTYPE" == darwin* ]]; then
-    brew install wget ccache cmake pkg-config ninja
+    PATH="~/.local/bin:$PATH"
 
-    export PATH=/usr/local/opt/ccache/libexec:$PATH
-    export PATH=~/Library/Python/$(python3 --version | grep -o '[[:digit:]].[[:digit:]][[:digit:]]')/bin:$PATH
-fi
-
-python3.10 -m pip install conan numpy --user
-
-if [[ "$OSTYPE" == linux-* ]]; then
     if [[ ! -d /opt/cmake ]]; then
         currentPath=$(pwd)
         wget https://github.com/Kitware/CMake/releases/download/v3.23.2/cmake-3.23.2-linux-x86_64.tar.gz
@@ -31,13 +25,20 @@ if [[ "$OSTYPE" == linux-* ]]; then
     ln -sf $(which ccache) /usr/local/bin/cc
     ln -sf $(which ccache) /usr/local/bin/c++
     ccache --max-files 0 --max-size 0
+
+elif [[ "$OSTYPE" == darwin* ]]; then
+    brew install wget ccache cmake pkg-config ninja
+
+    export PATH="/usr/local/opt/ccache/libexec:~/Library/Python/${_PYTHON_VERSION}/bin:$PATH"
+
+elif [[ "$OSTYPE" == 'msys' ]]; then
+    _PYTHON_VERSION=$(echo $_PYTHON_VERSION | tr '.' '')
+    export PATH="$PATH:~/AppData/Roaming/Python/Python${_PYTHON_VERSION}/Scripts"
 fi
 
-export PATH=/opt/cmake/bin:/usr/local/bin:~/.local/bin:$PATH
-if [[ "$OSTYPE" == 'msys' ]]; then
-    export PATH=$PATH:~/AppData/Roaming/Python/Python310/Scripts
-fi
+python3 -m pip install conan numpy --user
 
+# TODO: Switch to C++14?
 export CMAKE_CXX_STANDARD=17
 
 export USE_OPENVDB=0
@@ -60,7 +61,10 @@ export USE_TIFF=1
 export USE_LIBRAW=1
 export USE_OPENJPEG=1
 export USE_FREETYPE=1
-export USE_CONAN=1
+export USE_CONAN=1  # Where is this used? I don't remember. But could be a CMake var instead.
+
+# TODO: Is it required?
+export LINKSTATIC=1
 
 export OPENCOLORIO_VERSION=v2.1.2
 export PUGIXML_VERSION=v1.11.4
@@ -73,7 +77,9 @@ export PUGIXML_BUILD_SHARED_LIBS=OFF
 export OPENEXR_BUILD_SHARED_LIBS=OFF
 
 export MY_CMAKE_FLAGS="${MY_CMAKE_FLAGS} -DBUILD_SHARED_LIBS=OFF -DLINKSTATIC=ON -DOIIO_BUILD_TESTS=OFF -DOIIO_BUILD_TOOLS=ON"
-export PYTHON_VERSION=3.10
+
+# TODO: Is it needed?
+export PYTHON_VERSION=$_PYTHON_VERSION
 
 export MACOSX_DEPLOYMENT_TARGET=10.13
 
@@ -81,9 +87,10 @@ export OPENIMAGEIO_OPTIONS="openexr:core=1"
 
 source src/build-scripts/ci-startup.bash
 
+# TODO: Is it needed?
 export CMAKE_BUILD_PARALLEL_LEVEL=16
 
-unset TERM
+unset TERM  # Required to have "non smart" cmake output.
 
 mkdir -p build
 
@@ -94,6 +101,7 @@ fi
 
 if [[ "$OSTYPE" == linux-* ]]; then
     conan profile update settings.compiler=gcc default
+    # TODO: Should we use an older version? Or we don't care ebcause we recompile everything anyway?
     conan profile update settings.compiler.version=10 default
     conan profile update settings.compiler.libcxx=libstdc++ default
 elif [[ "$OSTYPE" == darwin* ]]; then
@@ -103,6 +111,7 @@ elif [[ "$OSTYPE" == darwin* ]]; then
     conan profile update settings.compiler.libcxx=libc++ default
 elif [[ "$OSTYPE" == "msys" ]]; then
     conan profile update settings.compiler='Visual Studio' default
+    # TODO: Is /MT required if we don't build for Python 2.7?
     conan profile update settings.compiler.runtime=MT default
     conan profile update settings.compiler.version=16 default
     conan profile update settings.arch=x86_64 default
@@ -132,12 +141,17 @@ else
     cat ../conanfile.txt | grep -v 'ffmpeg/' > conanfile.txt
 fi
 
-PATH=/opt/python/cp310-cp310/bin:$PATH CONAN_SYSREQUIRES_SUDO=0 CONAN_SYSREQUIRES_MODE=enabled conan install . --build #$conanArgs
+export CONAN_SYSREQUIRES_SUDO=0
+export CONAN_SYSREQUIRES_MODE=enabled
+
+conan install . --build #$conanArgs
 
 popd
 
 source src/build-scripts/gh-installdeps.bash
 
-# source src/build-scripts/ci-build.bash
+# TODO: Replace with either pip wheel or we need to use cibuildwheel.
+python3 setup.py bdist_wheel
 
-python3.10 -m pip wheel -v .
+# To bundle the OIIO libs and other needed libs: auditwheel repair dist/*.whl --lib-sdir /libs
+# We'll have to figure out what to do on Windows and macOS

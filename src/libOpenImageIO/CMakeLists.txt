@@ -142,7 +142,7 @@ target_link_libraries (OpenImageIO
             $<TARGET_NAME_IF_EXISTS:OpenColorIO::OpenColorIOHeaders>
             $<TARGET_NAME_IF_EXISTS:yaml-cpp::yaml-cpp>
             $<TARGET_NAME_IF_EXISTS:pystring::pystring>
-            $<TARGET_NAME_IF_EXISTS:EXPAT::EXPAT>
+            $<TARGET_NAME_IF_EXISTS:expat::expat>
             $<TARGET_NAME_IF_EXISTS:pugixml::pugixml>
             $<TARGET_NAME_IF_EXISTS:TBB::tbb>
             ${BZIP2_LIBRARIES}

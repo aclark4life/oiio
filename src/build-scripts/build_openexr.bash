@@ -21,7 +21,7 @@ OPENEXR_BUILD_SHARED_LIBS=${OPENEXR_BUILD_SHARED_LIBS:="ON"}
 BASEDIR=$PWD
 
 if [[ "$OSTYPE" == "msys" ]]; then
-    OPENEXR_CXX_FLAGS="${OPENEXR_CXX_FLAGS} /W1 /EHsc /DWIN32=1"
+    OPENEXR_CXX_FLAGS="${OPENEXR_CXX_FLAGS} /W1 /EHsc /DWIN32=1"  # TODO: It would be great to find whey these are needed.
     if [[ "${OPENEXR_BUILD_SHARED_LIBS}" != "ON" ]]; then
         OPENEXR_CXX_FLAGS="${OPENEXR_CXX_FLAGS} /MT"
     fi
@@ -62,6 +62,7 @@ if [[ ${OPENEXR_VERSION} == "v2.3.0" ]] ; then
 else
     # Simplified setup for 2.4+
     cd ${OPENEXR_BUILD_DIR}
+    # TODO: Why is DCMAKE_CXX_FLAGS_RELEASE needed? I remember that it wasn't working without this...
     cmake -DCMAKE_BUILD_TYPE=${OPENEXR_BUILD_TYPE} \
             -DBUILD_SHARED_LIBS=${OPENEXR_BUILD_SHARED_LIBS} \
             -DCMAKE_INSTALL_PREFIX="${OPENEXR_INSTALL_DIR}" \

@@ -42,6 +42,7 @@ mkdir -p ${PYBIND11_BUILD_DIR}
 cd ${PYBIND11_BUILD_DIR}
 
 if [[ -z $DEP_DOWNLOAD_ONLY ]]; then
+    # TODO: Is CMAKE_MODULE_PATH needed? It's only set on Windows...
     time cmake -DCMAKE_BUILD_TYPE=Release \
                -DCMAKE_INSTALL_PREFIX=${PYBIND11_INSTALL_DIR} \
                -DPYBIND11_TEST=OFF \
