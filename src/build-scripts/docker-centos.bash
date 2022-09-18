@@ -154,4 +154,6 @@ source src/build-scripts/gh-installdeps.bash
 python3 setup.py bdist_wheel
 
 # To bundle the OIIO libs and other needed libs: auditwheel repair dist/*.whl --lib-sdir /libs
-# We'll have to figure out what to do on Windows and macOS
+# On macOS: delocate-wheel dist/OpenImageIO-2.4.0.dev1-cp310-cp310-macosx_12_0_x86_64.whl --lib-sdir libs
+# Note that on macOS, delocate doesn't mark the wheel as macosx_10.13 ...
+# On windows, delvewheel can be used.
